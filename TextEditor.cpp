@@ -224,6 +224,32 @@ void TextEditor::Advance(Coordinates& aCoordinates) const
 	aCoordinates.mColumn = GetCharacterColumn(aCoordinates.mLine, cindex);
 }
 
+void TextEditor::Retreat(Coordinates& aCoordinates) const
+{
+	if (aCoordinates.mLine >= (int)mLines.size())
+		return;
+
+	auto& line = mLines[aCoordinates.mLine];
+	auto cindex = GetCharacterIndexL(aCoordinates);
+	if (cindex == 0)
+	{
+		if (aCoordinates.mLine < 1)
+			return;
+		aCoordinates.mLine--;
+		aCoordinates.mColumn = GetLineMaxColumn(aCoordinates.mLine);
+		return;
+	}
+
+	while (cindex > 0)
+	{
+		--cindex;
+		auto c = line[cindex].mChar;
+		if ((c & 0xC0) != 0x80)	// not UTF code sequence 10xxxxxx
+			break;
+	}
+	aCoordinates.mColumn = GetCharacterColumn(aCoordinates.mLine, cindex);
+}
+
 void TextEditor::DeleteRange(const Coordinates& aStart, const Coordinates& aEnd)
 {
 	assert(aEnd >= aStart);
@@ -1313,7 +1339,7 @@ void TextEditor::Render(bool aParentIsFocused)
 				else
 				{
 					auto l = UTF8CharLength(glyph.mChar);
-					while (l-- > 0)
+					while (l-- > 0 && i < line.size())
 						mLineBuffer.push_back(line[i++].mChar);
 				}
 				++columnNo;
@@ -1549,8 +1575,8 @@ void TextEditor::ChangeCurrentLinesIndentation(bool aIncrease)
 			std::swap(start, end);
 		start.mColumn = 0;
 		//			end.mColumn = end.mLine < mLines.size() ? mLines[end.mLine].size() : 0;
-		if (end.mColumn == 0 && end.mLine > 0)
-			--end.mLine;
+		//if (end.mColumn == 0 && end.mLine > 0)
+			//--end.mLine;
 		if (end.mLine >= (int)mLines.size())
 			end.mLine = mLines.empty() ? 0 : (int)mLines.size() - 1;
 		end.mColumn = GetLineMaxColumn(end.mLine);
@@ -1558,7 +1584,7 @@ void TextEditor::ChangeCurrentLinesIndentation(bool aIncrease)
 		//if (end.mColumn >= GetLineMaxColumn(end.mLine))
 		//	end.mColumn = GetLineMaxColumn(end.mLine) - 1;
 
-		UndoOperation removeOperation = { GetText(start, end) , start, end, UndoOperationType::Delete };
+		UndoOperation removeOperation = { GetText(start, end), start, end, UndoOperationType::Delete };
 
 		bool modified = false;
 
