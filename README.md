@@ -3,9 +3,43 @@ Syntax highlighting text editor for ImGui
 
 ![Screenshot](https://github.com/BalazsJako/ImGuiColorTextEdit/wiki/ImGuiTextEdit.png "Screenshot")
 
-Demo project: https://github.com/BalazsJako/ColorTextEditorDemo
 
-This started as my attempt to write a relatively simple widget which provides text editing functionality with syntax highlighting. Now there are other contributors who provide valuable additions.
+To use in your own projects you really only need these files
+ImGuiDebugPanel.cpp
+LanguageDefinitions.cpp
+TextEditor.cpp
+TextEditor.h
+TextEditorDemo.cpp
+UnitTests.cpp
+
+
+
+
+To run the demo
+
+//clone imgui
+
+// copy the ImGuiColorTextEdit folder into your desired example_... folder
+// add .\ImGuiColorTextEdit to c++ include directory of the appropriate example... project (remember both debug and release)
+
+// include TextEditor.h and the following definitions into example...\main.cpp
+#include "TextEditor.h"
+int TextEditorDemo();
+
+
+// add a call to the demo  into example...\main.cpp
+
+// 4. Show a textEditor frame in a simple window.
+TextEditorDemo();
+
+
+It should look like this:
+![Screenshot](TextEditorDemo.png "Demo")
+
+
+This started as  BalazsJakos attempt to write a relatively simple widget which provides text editing functionality with syntax highlighting. Now there are other contributors who provide valuable additions.
+The project was dead for a very long time, but has now reforked and revitalised!
+
 
 While it relies on Omar Cornut's https://github.com/ocornut/imgui, it does not follow the "pure" one widget - one function approach. Since the editor has to maintain a relatively complex and large internal state, it did not seem to be practical to try and enforce fully immediate mode. It stores its internal state in an object instance which is reused across frames.
 

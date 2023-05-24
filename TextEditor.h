@@ -340,6 +340,26 @@ public:
 
 	void ImGuiDebugPanel(const std::string& panelName = "Debug");
 	void UnitTests();
+
+//DGMStart
+	inline bool needsInit() { return mNeedsInit; }
+	int Initialize();
+
+	inline void setLastSaveTime(uint64_t lastSaveTime = 0) { mLastSaveTime = lastSaveTime; }
+    inline uint64_t getLastSaveTime() { return mLastSaveTime; }
+    inline void setAutoSaveInterval(uint64_t autoSaveInterval = 0) { mAutoSaveInterval = autoSaveInterval; }
+    inline uint64_t getAutoSaveInterval() { return mAutoSaveInterval; }
+
+	inline void SetFilename(const std::string& aFilename) { mFilename = aFilename; }
+	inline std::string GetFilename() const { return mFilename; }
+
+	void MoveTo(const Coordinates& aPosition);
+	void SetFind(const std::string& aFindStr) { mFindStr = aFindStr; }
+	void Find();
+
+    inline void drawLineNumbers(bool dln = true) { mDrawLineNumbers = dln; }
+//DGMEnd
+
 private:
 	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
 
@@ -492,4 +512,36 @@ private:
 	uint64_t mStartTime;
 
 	float mLastClick;
+
+
+
+	bool mDrawLineNumbers = true;
+
+	uint64_t mLastSaveTime = 0;
+	uint64_t mAutoSaveInterval = 5;
+	std::string mFilename;
+	std::string mFindStr;
+
+	bool mNeedsInit = true;
+
+};
+
+
+
+
+enum textEditorFlags
+{
+	textEditorFlags_None =					0,
+	textEditorFlags_NoStatusBar =			1 << 1,  // Disable the status bar
+	textEditorFlags_StatusBarTop =			1 << 2,  // Status bar on Top (else at bottom)
+	textEditorFlags_NoMenuBar =				1 << 3,  // disable the menu-bar
+	textEditorFlags_ReadOnly =				1 << 4,
+	textEditorFlags_ReadOnly_OnceOnly =		1 << 5,
+	textEditorFlags_NoOpen =				1 << 6,  // disable open
+	textEditorFlags_NoSave =				1 << 7,  // disable save
+	textEditorFlags_AutoSave =				1 << 8,
+	textEditorFlags_NoQuit =                1 << 9,  // disable quit
+	textEditorFlags_NoLineNumbers =			1 << 10,  // don't display line numbers
+
+	textEditorFlags_NoDecoration =          textEditorFlags_NoStatusBar | textEditorFlags_NoMenuBar | textEditorFlags_NoLineNumbers,
 };

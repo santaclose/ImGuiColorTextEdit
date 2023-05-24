@@ -344,11 +344,11 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 	{
 		auto& line = mLines.at(lineNo);
 
-		int columnIndex = 0;
+		//int columnIndex = 0;
 		std::string cumulatedString = "";
-		float columnWidth = 0.0f;
+		//float columnWidth = 0.0f;
 		float columnX = 0.0f;
-		int delta = 0;
+		//int delta = 0;
 
 		// First we find the hovered column coord.
 		for (size_t columnIndex = 0; columnIndex < line.size(); ++columnIndex)
@@ -1204,10 +1204,12 @@ void TextEditor::Render(bool aParentIsFocused)
 			}
 
 			// Draw line number (right aligned)
-			snprintf(buf, 16, "%d  ", lineNo + 1);
+            if (mDrawLineNumbers) {
+                snprintf(buf, 16, "%d  ", lineNo + 1);
 
-			auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
-			drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);
+                auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
+                drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);
+            }
 
 			std::vector<Coordinates> cursorCoordsInThisLine;
 			for (int c = 0; c <= mState.mCurrentCursor; c++)
