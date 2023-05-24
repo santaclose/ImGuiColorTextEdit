@@ -10,7 +10,7 @@ To run the demo
 
 // include TextEditor.h and the following definitions into example...\main.cpp
 #include "TextEditor.h"
-int TextEditorDemo();
+void TextEditorDemo();
 
 
 // add a call to the demo  into example...\main.cpp
@@ -146,11 +146,11 @@ int loadEditorFile(TextEditor& editor, std::string fileName) {
 
 int saveEditorFile(TextEditor& editor, std::string saveAsFileName = "") {
 
-    if (editor.GetFilename() == "")
-        return 1;
-
     if (saveAsFileName == "")
         saveAsFileName = editor.GetFilename();
+	
+    if (editor.GetFilename() == "")
+        return 1;
 
     std::stringstream oFile(editor.GetText());
     std::cout << "Saving " << saveAsFileName << std::endl;
