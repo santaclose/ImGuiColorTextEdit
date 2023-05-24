@@ -341,7 +341,6 @@ public:
 	void ImGuiDebugPanel(const std::string& panelName = "Debug");
 	void UnitTests();
 
-//DGMStart
 	inline bool needsInit() { return mNeedsInit; }
 	int Initialize();
 
@@ -358,7 +357,7 @@ public:
 	void Find();
 
     inline void drawLineNumbers(bool dln = true) { mDrawLineNumbers = dln; }
-//DGMEnd
+
 
 private:
 	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
