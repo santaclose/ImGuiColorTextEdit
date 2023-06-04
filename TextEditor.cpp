@@ -743,7 +743,7 @@ namespace ImGuiColorTextEdit {
 		AddUndo(u);
 	}
 
-	void TextEditor::OnLineChanged(bool aBeforeChange, int aLine, int aColumn, int aCharCount, bool aDeleted)
+	void TextEditor::OnLineChanged(bool aBeforeChange, int aLine, int aColumn, int aCharCount, bool aDeleted) // adjusts cursor position when other cursor writes/deletes in the same line
 	{
 		static std::unordered_map<int, int> cursorCharIndices;
 		if (aBeforeChange)
@@ -751,13 +751,12 @@ namespace ImGuiColorTextEdit {
 			cursorCharIndices.clear();
 			for (int c = 0; c <= mState.mCurrentCursor; c++)
 			{
-				if (mState.mCursors[c].mCursorPosition.mLine == aLine)
+				if (mState.mCursors[c].mCursorPosition.mLine == aLine && // cursor is at the line
+					mState.mCursors[c].mCursorPosition.mColumn > aColumn && // cursor is to the right of changing part
+					mState.mCursors[c].mSelectionEnd == mState.mCursors[c].mSelectionStart) // cursor does not have a selection
 				{
-					if (mState.mCursors[c].mCursorPosition.mColumn > aColumn)
-					{
-						cursorCharIndices[c] = GetCharacterIndexR({ aLine, mState.mCursors[c].mCursorPosition.mColumn });
-						cursorCharIndices[c] += aDeleted ? -aCharCount : aCharCount;
-					}
+					cursorCharIndices[c] = GetCharacterIndexR({ aLine, mState.mCursors[c].mCursorPosition.mColumn });
+					cursorCharIndices[c] += aDeleted ? -aCharCount : aCharCount;
 				}
 			}
 		}
@@ -1691,12 +1690,14 @@ namespace ImGuiColorTextEdit {
 		u.mBefore = mState;
 
 		bool shouldAddComment = false;
-		for (int c = mState.mCurrentCursor; c > -1 && !shouldAddComment; c--)
+		std::unordered_set<int> affectedLines;
+		for (int c = mState.mCurrentCursor; c > -1; c--)
 		{
-			for (int currentLine = mState.mCursors[c].mSelectionEnd.mLine; currentLine >= mState.mCursors[c].mSelectionStart.mLine && !shouldAddComment; currentLine--)
+			for (int currentLine = mState.mCursors[c].mSelectionEnd.mLine; currentLine >= mState.mCursors[c].mSelectionStart.mLine; currentLine--)
 			{
 				if (Coordinates{ currentLine, 0 } == mState.mCursors[c].mSelectionEnd && mState.mCursors[c].mSelectionEnd != mState.mCursors[c].mSelectionStart) // when selection ends at line start
 					continue;
+				affectedLines.insert(currentLine);
 				int currentIndex = 0;
 				while (currentIndex < mLines[currentLine].size() && (mLines[currentLine][currentIndex].mChar == ' ' || mLines[currentLine][currentIndex].mChar == '\t')) currentIndex++;
 				if (currentIndex == mLines[currentLine].size())
@@ -1710,45 +1711,35 @@ namespace ImGuiColorTextEdit {
 
 		if (shouldAddComment)
 		{
-			for (int c = mState.mCurrentCursor; c > -1; c--)
+			for (int currentLine : affectedLines) // order doesn't matter as changes are not multiline
 			{
-				for (int currentLine = mState.mCursors[c].mSelectionEnd.mLine; currentLine >= mState.mCursors[c].mSelectionStart.mLine; currentLine--)
-				{
-					if (Coordinates{ currentLine, 0 } == mState.mCursors[c].mSelectionEnd && mState.mCursors[c].mSelectionEnd != mState.mCursors[c].mSelectionStart) // when selection ends at line start
-						continue;
-					Coordinates lineStart = { currentLine, 0 };
-					Coordinates insertionEnd = lineStart;
-					InsertTextAt(insertionEnd, (commentString + ' ').c_str()); // sets insertion end
-					u.mOperations.push_back({ (commentString + ' ') , lineStart, insertionEnd, UndoOperationType::Add });
-					Colorize(lineStart.mLine, 1);
-				}
+				Coordinates lineStart = { currentLine, 0 };
+				Coordinates insertionEnd = lineStart;
+				InsertTextAt(insertionEnd, (commentString + ' ').c_str()); // sets insertion end
+				u.mOperations.push_back({ (commentString + ' ') , lineStart, insertionEnd, UndoOperationType::Add });
+				Colorize(lineStart.mLine, 1);
 			}
 		}
 		else
 		{
-			for (int c = mState.mCurrentCursor; c > -1; c--)
+			for (int currentLine : affectedLines) // order doesn't matter as changes are not multiline
 			{
-				for (int currentLine = mState.mCursors[c].mSelectionEnd.mLine; currentLine >= mState.mCursors[c].mSelectionStart.mLine; currentLine--)
-				{
-					if (Coordinates{ currentLine, 0 } == mState.mCursors[c].mSelectionEnd && mState.mCursors[c].mSelectionEnd != mState.mCursors[c].mSelectionStart) // when selection ends at line start
-						continue;
-					int currentIndex = 0;
-					while (currentIndex < mLines[currentLine].size() && (mLines[currentLine][currentIndex].mChar == ' ' || mLines[currentLine][currentIndex].mChar == '\t')) currentIndex++;
-					if (currentIndex == mLines[currentLine].size())
-						continue;
-					int i = 0;
-					while (i < commentString.length() && currentIndex + i < mLines[currentLine].size() && mLines[currentLine][currentIndex + i].mChar == commentString[i]) i++;
-					bool matched = i == commentString.length();
-					assert(matched);
-					if (currentIndex + i < mLines[currentLine].size() && mLines[currentLine][currentIndex + i].mChar == ' ')
-						i++;
+				int currentIndex = 0;
+				while (currentIndex < mLines[currentLine].size() && (mLines[currentLine][currentIndex].mChar == ' ' || mLines[currentLine][currentIndex].mChar == '\t')) currentIndex++;
+				if (currentIndex == mLines[currentLine].size())
+					continue;
+				int i = 0;
+				while (i < commentString.length() && currentIndex + i < mLines[currentLine].size() && mLines[currentLine][currentIndex + i].mChar == commentString[i]) i++;
+				bool matched = i == commentString.length();
+				assert(matched);
+				if (currentIndex + i < mLines[currentLine].size() && mLines[currentLine][currentIndex + i].mChar == ' ')
+					i++;
 
-					Coordinates start = { currentLine, GetCharacterColumn(currentLine, currentIndex) };
-					Coordinates end = { currentLine, GetCharacterColumn(currentLine, currentIndex + i) };
-					u.mOperations.push_back({ GetText(start, end) , start, end, UndoOperationType::Delete});
-					DeleteRange(start, end);
-					Colorize(currentLine, 1);
-				}
+				Coordinates start = { currentLine, GetCharacterColumn(currentLine, currentIndex) };
+				Coordinates end = { currentLine, GetCharacterColumn(currentLine, currentIndex + i) };
+				u.mOperations.push_back({ GetText(start, end) , start, end, UndoOperationType::Delete });
+				DeleteRange(start, end);
+				Colorize(currentLine, 1);
 			}
 		}
 

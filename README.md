@@ -1,3 +1,19 @@
+# About this fork
+You can use https://github.com/santaclose/ste as a demo.
+
+Feel free to join my [discord server](https://discord.gg/H7paVYPUUA) if you want to discuss anything about this fork.
+
+Features I've been working on:
+- multicursor (ctrl + click to add a new one)
+- ctrl + d for selecting next match
+- ctrl + \[ and ctrl + \] for indentation
+- more languag definitions for syntax highlighting
+- switched to boost regex which seems more stable
+- ctrl + backspace and ctrl + delete for word mode delete
+- ctrl + / for comment toggling
+- it works without setting a language definition
+- middle mouse button for panning
+
 # ImGuiColorTextEdit
 Syntax highlighting text editor for ImGui
 
