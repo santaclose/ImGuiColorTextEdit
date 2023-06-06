@@ -530,17 +530,18 @@ private:
 
 enum textEditorFlags
 {
-	textEditorFlags_None =					0,
-	textEditorFlags_NoStatusBar =			1 << 1,  // Disable the status bar
-	textEditorFlags_StatusBarTop =			1 << 2,  // Status bar on Top (else at bottom)
-	textEditorFlags_NoMenuBar =				1 << 3,  // disable the menu-bar
-	textEditorFlags_ReadOnly =				1 << 4,
-	textEditorFlags_ReadOnly_OnceOnly =		1 << 5,
-	textEditorFlags_NoOpen =				1 << 6,  // disable open
-	textEditorFlags_NoSave =				1 << 7,  // disable save
-	textEditorFlags_AutoSave =				1 << 8,
-	textEditorFlags_NoQuit =                1 << 9,  // disable quit
-	textEditorFlags_NoLineNumbers =			1 << 10,  // don't display line numbers
+	textEditorFlags_None = 0,
+	textEditorFlags_NoStatusBar = 1 << 1,  // Disable the status bar
+	textEditorFlags_StatusBarTop = 1 << 2,  // Status bar on Top (else at bottom)
+	textEditorFlags_NoMenuBar = 1 << 3,  // disable the menu-bar
+	textEditorFlags_MenuBarOutsideFrame = 1 << 4,  // disable the menu-bar
+	textEditorFlags_ReadOnly = 1 << 5,
+	textEditorFlags_ReadOnly_OnceOnly = 1 << 6,
+	textEditorFlags_NoOpen = 1 << 7,  // disable open
+	textEditorFlags_NoSave = 1 << 8,  // disable save
+	textEditorFlags_AutoSave = 1 << 9,
+	textEditorFlags_NoQuit = 1 << 10,  // disable quit
+	textEditorFlags_NoLineNumbers = 1 << 11,  // don't display line numbers
 
-	textEditorFlags_NoDecoration =          textEditorFlags_NoStatusBar | textEditorFlags_NoMenuBar | textEditorFlags_NoLineNumbers,
+	textEditorFlags_NoDecoration = textEditorFlags_NoStatusBar | textEditorFlags_NoMenuBar | textEditorFlags_NoLineNumbers,
 };
