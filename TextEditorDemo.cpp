@@ -288,14 +288,16 @@ int drawTextEditorFrame(TextEditor& editor, bool& show, const char* frameName, I
     float renderSizeY = frameSize.y;
 
     textEditorHeaderStuff(editor, Flags, fileToEdit);
-    
-    ImGui::BeginChild(frameName, frameSize, false);
+
+    ImGuiWindowFlags childFlags = ImGuiWindowFlags_None;
+    if ((Flags & textEditorFlags_NoMenuBar) == 0 && (Flags & textEditorFlags_MenuBarOutsideFrame) == 0)
+        childFlags = ImGuiWindowFlags_MenuBar;
+    ImGui::BeginChild(frameName, frameSize, false, childFlags);
     {
-        //https://github.com/ocornut/imgui/issues/3518
-        // I'm not sure how to get a menu bar across the top of a frame
-        if ((Flags & textEditorFlags_NoMenuBar) == 0) {
+
+        if ((Flags & textEditorFlags_NoMenuBar) == 0 && (Flags & textEditorFlags_MenuBarOutsideFrame) == 0) {
             textEditorMenuBar(editor, show, Flags);
-            renderSizeY -= 3 * 20;
+            //renderSizeY -= 3 * 20;
         }
 
 
@@ -347,31 +349,20 @@ void TextEditorDemo() {
 
         static TextEditor editor;
         textEditorFlags teFlags = textEditorFlags_None;
+        static bool menuInFrame = true;
 
 
-        if (ImGui::Begin("Text Editor Frame", &showTextEditorFrame))
+        ImGuiWindowFlags childFlags = ImGuiWindowFlags_None;
+        if (!menuInFrame)
+            childFlags = ImGuiWindowFlags_MenuBar;
+        if (ImGui::Begin("Text Editor Frame", &showTextEditorFrame, childFlags))
         {
 
-            ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
-            if (ImGui::BeginMenuBar()) {
-                if (ImGui::BeginMenu("Menu"))
-                {
-                    ImGui::MenuItem("Console");
-                    ImGui::MenuItem("Log");
-
-                    ImGui::EndMenu();
-                }
-                //textEditorMenuBar(editor, showTextEditorFrame, teFlags);
-                ImGui::EndMenuBar();
-            }
-
-
-
-            static bool menuInFrame = true;
             ImGui::Checkbox("Menu in TextEditor Frame", &menuInFrame);
-            if (!menuInFrame)
-                teFlags = (textEditorFlags)(teFlags | textEditorFlags_NoMenuBar);
-
+            if (!menuInFrame) {
+                teFlags = (textEditorFlags)(teFlags | textEditorFlags_MenuBarOutsideFrame);
+                textEditorMenuBar(editor, showTextEditorFrame, teFlags);
+            }
 
             static bool statusBarAtTop = true;
             ImGui::Checkbox("Status Bar at Top", &statusBarAtTop);
