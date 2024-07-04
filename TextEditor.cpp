@@ -4,6 +4,7 @@
 #include <set>
 
 #include "TextEditor.h"
+#include "Colorizer.h"
 
 #define IMGUI_SCROLLBAR_WIDTH 14.0f
 #define POS_TO_COORDS_COLUMN_OFFSET 0.33f
@@ -346,6 +347,7 @@ void TextEditor::SetText(const std::string& aText)
 
 	mUndoBuffer.clear();
 	mUndoIndex = 0;
+	Colorizer::OnLoad(mLines);
 }
 
 std::string TextEditor::GetText() const
@@ -381,6 +383,7 @@ void TextEditor::SetTextLines(const std::vector<std::string>& aLines)
 
 	mUndoBuffer.clear();
 	mUndoIndex = 0;
+	Colorizer::OnLoad(mLines);
 }
 
 std::vector<std::string> TextEditor::GetTextLines() const
@@ -2530,10 +2533,19 @@ void TextEditor::MergeCursorsIfPossible()
 
 void TextEditor::AddUndo(UndoRecord& aValue)
 {
+	static std::vector<Common::UndoOperation> charIndexOperations;
 	assert(!mReadOnly);
 	mUndoBuffer.resize((size_t)(mUndoIndex + 1));
 	mUndoBuffer.back() = aValue;
 	++mUndoIndex;
+
+	charIndexOperations = aValue.mOperations;
+	for (Common::UndoOperation& x : charIndexOperations)
+	{
+		x.mStart.mColumn = GetCharacterIndexR(x.mStart);
+		x.mEnd.mColumn = GetCharacterIndexR(x.mEnd);
+	}
+	Colorizer::OnChange(charIndexOperations, mLines);
 }
 
 const Common::Palette& TextEditor::GetDarkPalette()
