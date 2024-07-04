@@ -128,83 +128,12 @@ private:
 
 	// ------------- Internal ------------- //
 
-	// Represents a character coordinate from the user's point of view,
-	// i. e. consider an uniform grid (assuming fixed-width font) on the
-	// screen as it is rendered, and each cell has its own coordinate, starting from 0.
-	// Tabs are counted as [1..mTabSize] count empty spaces, depending on
-	// how many space is necessary to reach the next tab stop.
-	// For example, coordinate (1, 5) represents the character 'B' in a line "\tABC", when mTabSize = 4,
-	// because it is rendered as "    ABC" on the screen.
-	struct Coordinates
-	{
-		int mLine, mColumn;
-		Coordinates() : mLine(0), mColumn(0) {}
-		Coordinates(int aLine, int aColumn) : mLine(aLine), mColumn(aColumn)
-		{
-			assert(aLine >= 0);
-			assert(aColumn >= 0);
-		}
-		static Coordinates Invalid() { static Coordinates invalid(-1, -1); return invalid; }
-
-		bool operator ==(const Coordinates& o) const
-		{
-			return
-				mLine == o.mLine &&
-				mColumn == o.mColumn;
-		}
-
-		bool operator !=(const Coordinates& o) const
-		{
-			return
-				mLine != o.mLine ||
-				mColumn != o.mColumn;
-		}
-
-		bool operator <(const Coordinates& o) const
-		{
-			if (mLine != o.mLine)
-				return mLine < o.mLine;
-			return mColumn < o.mColumn;
-		}
-
-		bool operator >(const Coordinates& o) const
-		{
-			if (mLine != o.mLine)
-				return mLine > o.mLine;
-			return mColumn > o.mColumn;
-		}
-
-		bool operator <=(const Coordinates& o) const
-		{
-			if (mLine != o.mLine)
-				return mLine < o.mLine;
-			return mColumn <= o.mColumn;
-		}
-
-		bool operator >=(const Coordinates& o) const
-		{
-			if (mLine != o.mLine)
-				return mLine > o.mLine;
-			return mColumn >= o.mColumn;
-		}
-
-		Coordinates operator -(const Coordinates& o)
-		{
-			return Coordinates(mLine - o.mLine, mColumn - o.mColumn);
-		}
-
-		Coordinates operator +(const Coordinates& o)
-		{
-			return Coordinates(mLine + o.mLine, mColumn + o.mColumn);
-		}
-	};
-
 	struct Cursor
 	{
-		Coordinates mInteractiveStart = { 0, 0 };
-		Coordinates mInteractiveEnd = { 0, 0 };
-		inline Coordinates GetSelectionStart() const { return mInteractiveStart < mInteractiveEnd ? mInteractiveStart : mInteractiveEnd; }
-		inline Coordinates GetSelectionEnd() const { return mInteractiveStart > mInteractiveEnd ? mInteractiveStart : mInteractiveEnd; }
+		Common::Coordinates mInteractiveStart = { 0, 0 };
+		Common::Coordinates mInteractiveEnd = { 0, 0 };
+		inline Common::Coordinates GetSelectionStart() const { return mInteractiveStart < mInteractiveEnd ? mInteractiveStart : mInteractiveEnd; }
+		inline Common::Coordinates GetSelectionEnd() const { return mInteractiveStart > mInteractiveEnd ? mInteractiveStart : mInteractiveEnd; }
 		inline bool HasSelection() const { return mInteractiveStart != mInteractiveEnd; }
 	};
 
@@ -220,21 +149,11 @@ private:
 
 	struct Identifier
 	{
-		Coordinates mLocation;
+		Common::Coordinates mLocation;
 		std::string mDeclaration;
 	};
 
 	typedef std::unordered_map<std::string, Identifier> Identifiers;
-
-	enum class UndoOperationType { Add, Delete };
-	struct UndoOperation
-	{
-		std::string mText;
-		TextEditor::Coordinates mStart;
-		TextEditor::Coordinates mEnd;
-		UndoOperationType mType;
-	};
-
 	typedef std::vector<std::pair<boost::regex, Common::PaletteIndex>> RegexList;
 
 	class UndoRecord
@@ -244,32 +163,32 @@ private:
 		~UndoRecord() {}
 
 		UndoRecord(
-			const std::vector<UndoOperation>& aOperations,
+			const std::vector<Common::UndoOperation>& aOperations,
 			TextEditor::EditorState& aBefore,
 			TextEditor::EditorState& aAfter);
 
 		void Undo(TextEditor* aEditor);
 		void Redo(TextEditor* aEditor);
 
-		std::vector<UndoOperation> mOperations;
+		std::vector<Common::UndoOperation> mOperations;
 
 		EditorState mBefore;
 		EditorState mAfter;
 	};
 
-	std::string GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
+	std::string GetText(const Common::Coordinates& aStart, const Common::Coordinates& aEnd) const;
 	std::string GetClipboardText() const;
 	std::string GetSelectedText(int aCursor = -1) const;
 
-	void SetCursorPosition(const Coordinates& aPosition, int aCursor = -1, bool aClearSelection = true);
+	void SetCursorPosition(const Common::Coordinates& aPosition, int aCursor = -1, bool aClearSelection = true);
 
-	int InsertTextAt(Coordinates& aWhere, const char* aValue);
+	int InsertTextAt(Common::Coordinates& aWhere, const char* aValue);
 	void InsertTextAtCursor(const char* aValue, int aCursor = -1);
 
 	enum class MoveDirection { Right = 0, Left = 1, Up = 2, Down = 3 };
 	bool Move(int& aLine, int& aCharIndex, bool aLeft = false, bool aLockLine = false) const;
 	void MoveCharIndexAndColumn(int aLine, int& aCharIndex, int& aColumn) const;
-	void MoveCoords(Coordinates& aCoords, MoveDirection aDirection, bool aWordMode = false, int aLineCount = 1) const;
+	void MoveCoords(Common::Coordinates& aCoords, MoveDirection aDirection, bool aWordMode = false, int aLineCount = 1) const;
 
 	void MoveUp(int aAmount = 1, bool aSelect = false);
 	void MoveDown(int aAmount = 1, bool aSelect = false);
@@ -283,29 +202,29 @@ private:
 	void Backspace(bool aWordMode = false);
 	void Delete(bool aWordMode = false, const EditorState* aEditorState = nullptr);
 
-	void SetSelection(Coordinates aStart, Coordinates aEnd, int aCursor = -1);
+	void SetSelection(Common::Coordinates aStart, Common::Coordinates aEnd, int aCursor = -1);
 	void SetSelection(int aStartLine, int aStartChar, int aEndLine, int aEndChar, int aCursor = -1);
 
 	void SelectNextOccurrenceOf(const char* aText, int aTextSize, int aCursor = -1, bool aCaseSensitive = true);
 	void AddCursorForNextOccurrence(bool aCaseSensitive = true);
-	bool FindNextOccurrence(const char* aText, int aTextSize, const Coordinates& aFrom, Coordinates& outStart, Coordinates& outEnd, bool aCaseSensitive = true);
-	bool FindMatchingBracket(int aLine, int aCharIndex, Coordinates& out);
+	bool FindNextOccurrence(const char* aText, int aTextSize, const Common::Coordinates& aFrom, Common::Coordinates& outStart, Common::Coordinates& outEnd, bool aCaseSensitive = true);
+	bool FindMatchingBracket(int aLine, int aCharIndex, Common::Coordinates& out);
 	void ChangeCurrentLinesIndentation(bool aIncrease);
 	void MoveUpCurrentLines();
 	void MoveDownCurrentLines();
 	void ToggleLineComment();
 	void RemoveCurrentLines();
 
-	float TextDistanceToLineStart(const Coordinates& aFrom, bool aSanitizeCoords = true) const;
+	float TextDistanceToLineStart(const Common::Coordinates& aFrom, bool aSanitizeCoords = true) const;
 	void EnsureCursorVisible(int aCursor = -1, bool aStartToo = false);
 
-	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
-	Coordinates GetActualCursorCoordinates(int aCursor = -1, bool aStart = false) const;
-	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false, bool* isOverLineNumber = nullptr) const;
-	Coordinates FindWordStart(const Coordinates& aFrom) const;
-	Coordinates FindWordEnd(const Coordinates& aFrom) const;
-	int GetCharacterIndexL(const Coordinates& aCoordinates) const;
-	int GetCharacterIndexR(const Coordinates& aCoordinates) const;
+	Common::Coordinates SanitizeCoordinates(const Common::Coordinates& aValue) const;
+	Common::Coordinates GetActualCursorCoordinates(int aCursor = -1, bool aStart = false) const;
+	Common::Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false, bool* isOverLineNumber = nullptr) const;
+	Common::Coordinates FindWordStart(const Common::Coordinates& aFrom) const;
+	Common::Coordinates FindWordEnd(const Common::Coordinates& aFrom) const;
+	int GetCharacterIndexL(const Common::Coordinates& aCoordinates) const;
+	int GetCharacterIndexR(const Common::Coordinates& aCoordinates) const;
 	int GetCharacterColumn(int aLine, int aIndex) const;
 	int GetFirstVisibleCharacterIndex(int aLine) const;
 	int GetLineMaxColumn(int aLine, int aLimit = -1) const;
@@ -313,7 +232,7 @@ private:
 	Common::Line& InsertLine(int aIndex);
 	void RemoveLine(int aIndex, const std::unordered_set<int>* aHandledCursors = nullptr);
 	void RemoveLines(int aStart, int aEnd);
-	void DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
+	void DeleteRange(const Common::Coordinates& aStart, const Common::Coordinates& aEnd);
 	void DeleteSelection(int aCursor = -1);
 
 	void RemoveGlyphsFromLine(int aLine, int aStartChar, int aEndChar = -1);
@@ -374,7 +293,7 @@ private:
 	ImVec2 mLastMousePos;
 	bool mCursorPositionChanged = false;
 	bool mCursorOnBracket = false;
-	Coordinates mMatchingBracketCoords;
+	Common::Coordinates mMatchingBracketCoords;
 
 	int mColorRangeMin = 0;
 	int mColorRangeMax = 0;

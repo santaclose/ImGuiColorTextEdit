@@ -177,13 +177,13 @@ void TextEditor::UnitTests()
 	SetText("asdf asdf\nasdf\nasdf\tasdf\n zxcv zxcv");
 	// --- FindNextOccurrence --- //
 	{
-		Coordinates outStart, outEnd;
-		assert(FindNextOccurrence("asdf", 4, { 0, 0 }, outStart, outEnd) && outStart == Coordinates(0, 0) && outEnd == Coordinates(0, 4));
-		assert(FindNextOccurrence("asdf", 4, { 0, 1 }, outStart, outEnd) && outStart == Coordinates(0, 5) && outEnd == Coordinates(0, 9));
-		assert(FindNextOccurrence("asdf", 4, { 0, 5 }, outStart, outEnd) && outStart == Coordinates(0, 5) && outEnd == Coordinates(0, 9));
-		assert(FindNextOccurrence("asdf", 4, { 0, 6 }, outStart, outEnd) && outStart == Coordinates(1, 0) && outEnd == Coordinates(1, 4));
-		assert(FindNextOccurrence("asdf", 4, { 3, 3 }, outStart, outEnd) && outStart == Coordinates(0, 0) && outEnd == Coordinates(0, 4)); // go to line 0 if reach end of file
-		assert(FindNextOccurrence("zxcv", 4, { 3, 10 }, outStart, outEnd) && outStart == Coordinates(3, 1) && outEnd == Coordinates(3, 5)); // from behind in same line
+		Common::Coordinates outStart, outEnd;
+		assert(FindNextOccurrence("asdf", 4, { 0, 0 }, outStart, outEnd) && outStart == Common::Coordinates(0, 0) && outEnd == Common::Coordinates(0, 4));
+		assert(FindNextOccurrence("asdf", 4, { 0, 1 }, outStart, outEnd) && outStart == Common::Coordinates(0, 5) && outEnd == Common::Coordinates(0, 9));
+		assert(FindNextOccurrence("asdf", 4, { 0, 5 }, outStart, outEnd) && outStart == Common::Coordinates(0, 5) && outEnd == Common::Coordinates(0, 9));
+		assert(FindNextOccurrence("asdf", 4, { 0, 6 }, outStart, outEnd) && outStart == Common::Coordinates(1, 0) && outEnd == Common::Coordinates(1, 4));
+		assert(FindNextOccurrence("asdf", 4, { 3, 3 }, outStart, outEnd) && outStart == Common::Coordinates(0, 0) && outEnd == Common::Coordinates(0, 4)); // go to line 0 if reach end of file
+		assert(FindNextOccurrence("zxcv", 4, { 3, 10 }, outStart, outEnd) && outStart == Common::Coordinates(3, 1) && outEnd == Common::Coordinates(3, 5)); // from behind in same line
 		assert(!FindNextOccurrence("lalal", 4, { 3, 5 }, outStart, outEnd)); // not found
 	}
 }

@@ -37,7 +37,7 @@ void TextEditor::ImGuiDebugPanel(const std::string& panelName)
 				for (int j = 0; j < mUndoBuffer[i].mOperations.size(); j++)
 				{
 					ImGui::Text("%s", mUndoBuffer[i].mOperations[j].mText.c_str());
-					ImGui::Text(mUndoBuffer[i].mOperations[j].mType == UndoOperationType::Add ? "Add" : "Delete");
+					ImGui::Text(mUndoBuffer[i].mOperations[j].mType == Common::UndoOperationType::Add ? "Add" : "Delete");
 					ImGui::DragInt2("Start", &mUndoBuffer[i].mOperations[j].mStart.mLine);
 					ImGui::DragInt2("End", &mUndoBuffer[i].mOperations[j].mEnd.mLine);
 					ImGui::Separator();
