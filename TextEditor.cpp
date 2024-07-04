@@ -1905,10 +1905,9 @@ void TextEditor::DeleteSelection(int aCursor)
 	if (mState.mCursors[aCursor].GetSelectionEnd() == mState.mCursors[aCursor].GetSelectionStart())
 		return;
 
-	Coordinates newCursorPos = mState.mCursors[aCursor].GetSelectionStart();
+	Common::Coordinates newCursorPos = mState.mCursors[aCursor].GetSelectionStart();
 	DeleteRange(newCursorPos, mState.mCursors[aCursor].GetSelectionEnd());
 	SetCursorPosition(newCursorPos, aCursor);
-	Colorize(newCursorPos.mLine, 1);
 }
 
 void TextEditor::RemoveGlyphsFromLine(int aLine, int aStartChar, int aEndChar)
