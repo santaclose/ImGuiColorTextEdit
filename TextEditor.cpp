@@ -317,13 +317,23 @@ void TextEditor::Paste()
 void TextEditor::Undo(int aSteps)
 {
 	while (CanUndo() && aSteps-- > 0)
-		mUndoBuffer[--mUndoIndex].Undo(this);
+	{
+		mUndoIndex--;
+		mUndoBuffer[mUndoIndex].Undo(this);
+		for (Common::UndoOperation& x : mUndoBuffer[mUndoIndex].mOperations)
+			Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType != Common::UndoOperationType::Add, mLines);
+	}
 }
 
 void TextEditor::Redo(int aSteps)
 {
 	while (CanRedo() && aSteps-- > 0)
-		mUndoBuffer[mUndoIndex++].Redo(this);
+	{
+		mUndoBuffer[mUndoIndex].Redo(this);
+		for (Common::UndoOperation& x : mUndoBuffer[mUndoIndex].mOperations)
+			Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
+		mUndoIndex++;
+	}
 }
 
 void TextEditor::SetText(const std::string& aText)
@@ -2532,19 +2542,12 @@ void TextEditor::MergeCursorsIfPossible()
 
 void TextEditor::AddUndo(UndoRecord& aValue)
 {
-	static std::vector<Common::UndoOperation> charIndexOperations;
 	assert(!mReadOnly);
 	mUndoBuffer.resize((size_t)(mUndoIndex + 1));
 	mUndoBuffer.back() = aValue;
 	++mUndoIndex;
-
-	charIndexOperations = aValue.mOperations;
-	for (Common::UndoOperation& x : charIndexOperations)
-	{
-		x.mStart.mColumn = GetCharacterIndexR(x.mStart);
-		x.mEnd.mColumn = GetCharacterIndexR(x.mEnd);
-	}
-	Colorizer::OnChange(charIndexOperations, mLines);
+	for (Common::UndoOperation& x : aValue.mOperations)
+		Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
 }
 
 const Common::Palette& TextEditor::GetDarkPalette()
