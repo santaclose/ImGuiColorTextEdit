@@ -935,3 +935,93 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Json()
 	}
 	return langDef;
 }
+
+const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Wgsl()
+{
+	static bool inited = false;
+	static LanguageDefinition langDef;
+	if (!inited)
+	{
+		static const char* const keywords[] = {
+			// Attrubute Names
+			"align", "binding", "builtin", "compute", "const", "diagnostic", "fragment", "group", "id", "interpolate", "invariant", "location", "blend_src", "must_use", "size", "vertex", "workgroup_size",
+			// Built-in Value Names
+			"vertex_index", "instance_index", "position", "front_facing", "frag_depth", "sample_index", "sample_mask", "local_invocation_id", "local_invocation_index", "global_invocation_id", "workgroup_id",
+			"num_workgroups"
+			// Predeclared Types
+			"bool", "f16", "f32", "i32", "sampler", "sampler_comparison", "texture_depth_2d", "texture_depth_2d_array", "texture_depth_cube", "texture_depth_cube_array", "texture_depth_multisampled_2d",
+			"texture_external", "u32",
+			// Predeclared Alias
+			"vec2i", "vec3i", "vec4i", "vec2u", "vec3u", "vec4u", "vec2f", "vec3f", "vec4f", "vec2h", "vec3h", "vec4h",
+			"mat2x2f", "mat2x3f", "mat2x4f", "mat3x2f", "mat3x3f", "mat3x4f", "mat4x2f", "mat4x3f", "mat4x4f", "mat2x2h", "mat2x3h", "mat2x4h", "mat3x2h", "mat3x3h", "mat3x4h", "mat4x2h", "mat4x3h", "mat4x4h",
+			// Keywords
+			"alias", "break", "case", "const", "const_assert", "continue", "continuing", "default", "diagnostic", "discard", "else", "enable", "false", "fn", "for", "if", "let", "loop", "override", "requires",
+			"return", "struct", "switch", "true", "var", "while",
+		};
+		for (auto& k : keywords)
+			langDef.mKeywords.insert(k);
+
+		static const char* const identifiers[] = {
+			// Value Constructor Built-in Functions
+			"array", "bool", "f16", "f32", "i32", "mat2x2", "mat2x3", "mat2x4", "mat3x2", "mat3x3", "mat3x4", "mat4x2", "mat4x3", "mat4x4", "u32", "vec2", "vec3", "vec4",
+			// Bitcast
+			"bitcast",
+			// Logical Built-in Functions
+			"all", "any", "select",
+			// Array Built-in Functions
+			"arrayLength",
+			// Numeric Built-in Functions
+			"abs", "acos", "acosh", "asin", "asinh", "atan", "atanh", "atan2", "ceil", "clamp", "cos", "cosh", "countLeadingZeros", "countOneBits", "countTrailingZeros", "countTrailingZeros","cross", "dot",
+			"dot4U8Packed", "dot4I8Packed", "exp", "exp2", "extractBits", "faceForward", "firstLeadingBit", "firstTrailingBit", "floor", "fma", "fract", "frexp", "insertBits", "inverseSqrt", "ldexp", "length",
+			"log", "log2", "max", "min", "mix", "modf", "normalize", "pow", "quantizeToF16", "radians", "reflect", "refract", "reverseBits", "round", "saturate", "sign", "sin", "sinh", "smoothstep", "sqrt",
+			"step", "tan", "tanh", "transpose", "trunc",
+			// Derivative Built-in Functions
+			"dpdx", "dpdxCoarse", "dpdxFine", "dpdy", "dpdyCoarse", "dpdyFine", "fwidth", "fwidthCoarse", "fwidthFine"
+			// Texture Built-in Functions
+			"textureDimensions", "textureGather", "textureGatherCompare", "textureLoad", "textureNumLayers", "textureNumLevels", "textureNumSamples", "textureSample", "textureSampleBias", "textureSampleCompare",
+			"textureSampleCompareLevel", "textureSampleGrad", "textureSampleLevel", "textureSampleBaseClampToEdge", "textureStore",
+			// Atomic Built-in Functions
+			"atomicLoad", "atomicStore", "atomicAdd", "atomicSub", "atomicMax", "atomicMin", "atomicAnd", "atomicOr", "atomicXor", "atomicExchange", "atomicCompareExchangeWeak"
+			// Data Packing Built-in Functions
+			"pack4x8snorm", "pack4x8unorm", "pack4xI8", "pack4xU8", "pack4xI8Clamp", "pack4xU8Clamp", "pack2x16snorm", "pack2x16unorm", "pack2x16float",
+			// Data Unpacking Built-in Functions
+			"unpack4x8snorm", "unpack4x8unorm", "unpack4xI8", "unpack2x16snorm", "unpack2x16unorm", "unpack2x16float",
+			// Synchronization Built-in Functions
+			"storageBarrier", "textureBarrier", "workgroupBarrier", "workgroupUniformLoad"
+		};
+		for (auto& k : identifiers)
+		{
+			Identifier id;
+			id.mDeclaration = "Built-in function";
+			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
+		}
+
+		// Float & Half
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(0[fh]|[1-9][0-9]*[fh]|[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[fh]?|[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[fh]?|[0-9]+[eE][+-]?[0-9]+[fh]?)##", PaletteIndex::Number));
+		// Hex Float & Half
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[fh]?)?|0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[fh]?)?|0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[fh]?)##", PaletteIndex::Number));
+		// Decimal int
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(0[iu]?|[1-9][0-9]*[iu]?)##", PaletteIndex::Number));
+		// Hex int
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(0[xX][0-9a-fA-F]+[iu]?)##", PaletteIndex::Number));
+		// Identifiers
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##([a-zA-Z_][a-zA-Z0-9_]*)##", PaletteIndex::Identifier));
+		// Syntactic Tokens
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##([\[\]\{\}\~\@\!\%\^\&\*\(\)\-\+\=\~\|\<\>\?\/\:\;\,\.])##", PaletteIndex::Punctuation));
+
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##([ \t]*#[ \t]*[a-zA-Z_]+)##", PaletteIndex::Preprocessor));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(L?\"(\\.|[^\"])*\")##", PaletteIndex::String));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>(R"##(\'\\?[^\']\')##", PaletteIndex::CharLiteral));
+
+		langDef.mCommentStart = "/*";
+		langDef.mCommentEnd = "*/";
+		langDef.mSingleLineComment = "//";
+
+		langDef.mCaseSensitive = true;
+
+		langDef.mName = "WGSL";
+
+		inited = true;
+	}
+	return langDef;
+}

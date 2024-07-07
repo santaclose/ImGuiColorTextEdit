@@ -26,7 +26,7 @@ public:
 	};
 	enum class LanguageDefinitionId
 	{
-		None, Cpp, C, Cs, Python, Lua, Json, Sql, AngelScript, Glsl, Hlsl
+		None, Cpp, C, Cs, Python, Lua, Json, Sql, AngelScript, Glsl, Hlsl, Wgsl
 	};
 	enum class SetViewAtLineMode
 	{
@@ -292,6 +292,7 @@ private:
 		static const LanguageDefinition& Lua();
 		static const LanguageDefinition& Cs();
 		static const LanguageDefinition& Json();
+		static const LanguageDefinition& Wgsl();
 	};
 
 	enum class UndoOperationType { Add, Delete };
