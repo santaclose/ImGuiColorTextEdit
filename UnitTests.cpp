@@ -1,3 +1,4 @@
+#include <cmath>
 #include "TextEditor.h"
 
 void TextEditor::UnitTests()
