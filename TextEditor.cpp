@@ -4,7 +4,6 @@
 #include <set>
 
 #include "TextEditor.h"
-#include "Colorizer.h"
 
 #define IMGUI_SCROLLBAR_WIDTH 14.0f
 #define POS_TO_COORDS_COLUMN_OFFSET 0.33f
@@ -54,18 +53,19 @@ void TextEditor::SetPalette(PaletteId aValue)
 
 void TextEditor::SetLanguageDefinition(LanguageDefinitionId aValue)
 {
-	//mLanguageDefinitionId = aValue;
-	//switch (mLanguageDefinitionId)
-	//{
+	mLanguageDefinitionId = aValue;
+	switch (mLanguageDefinitionId)
+	{
 	//case LanguageDefinitionId::None:
 	//	mLanguageDefinition = nullptr;
 	//	return;
-	//case LanguageDefinitionId::Cpp:
-	//	mLanguageDefinition = &(LanguageDefinition::Cpp());
+	case LanguageDefinitionId::Cpp:
+		//mLanguageDefinition = &(LanguageDefinition::Cpp());
 	//	break;
-	//case LanguageDefinitionId::C:
-	//	mLanguageDefinition = &(LanguageDefinition::C());
-	//	break;
+	case LanguageDefinitionId::C:
+		//mLanguageDefinition = &(LanguageDefinition::C());
+		mColorizer = new ColorizerC();
+		break;
 	//case LanguageDefinitionId::Cs:
 	//	mLanguageDefinition = &(LanguageDefinition::Cs());
 	//	break;
@@ -90,11 +90,13 @@ void TextEditor::SetLanguageDefinition(LanguageDefinitionId aValue)
 	//case LanguageDefinitionId::Hlsl:
 	//	mLanguageDefinition = &(LanguageDefinition::Hlsl());
 	//	break;
-	//}
+	}
 
 	//mRegexList.clear();
 	//for (const auto& r : mLanguageDefinition->mTokenRegexStrings)
 	//	mRegexList.push_back(std::make_pair(boost::regex(r.first, boost::regex_constants::optimize), r.second));
+
+	if (mColorizer != nullptr) mColorizer->OnLoad(mLines);
 }
 
 const char* TextEditor::GetLanguageDefinitionName() const
@@ -321,7 +323,7 @@ void TextEditor::Undo(int aSteps)
 		mUndoIndex--;
 		mUndoBuffer[mUndoIndex].Undo(this);
 		for (Common::UndoOperation& x : mUndoBuffer[mUndoIndex].mOperations)
-			Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType != Common::UndoOperationType::Add, mLines);
+			if (mColorizer != nullptr) mColorizer->OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType != Common::UndoOperationType::Add, mLines);
 	}
 }
 
@@ -331,7 +333,7 @@ void TextEditor::Redo(int aSteps)
 	{
 		mUndoBuffer[mUndoIndex].Redo(this);
 		for (Common::UndoOperation& x : mUndoBuffer[mUndoIndex].mOperations)
-			Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
+			if (mColorizer != nullptr) mColorizer->OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
 		mUndoIndex++;
 	}
 }
@@ -357,7 +359,7 @@ void TextEditor::SetText(const std::string& aText)
 
 	mUndoBuffer.clear();
 	mUndoIndex = 0;
-	Colorizer::OnLoad(mLines);
+	if (mColorizer != nullptr) mColorizer->OnLoad(mLines);
 }
 
 std::string TextEditor::GetText() const
@@ -393,7 +395,7 @@ void TextEditor::SetTextLines(const std::vector<std::string>& aLines)
 
 	mUndoBuffer.clear();
 	mUndoIndex = 0;
-	Colorizer::OnLoad(mLines);
+	if (mColorizer != nullptr) mColorizer->OnLoad(mLines);
 }
 
 std::vector<std::string> TextEditor::GetTextLines() const
@@ -2547,7 +2549,7 @@ void TextEditor::AddUndo(UndoRecord& aValue)
 	mUndoBuffer.back() = aValue;
 	++mUndoIndex;
 	for (Common::UndoOperation& x : aValue.mOperations)
-		Colorizer::OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
+		if (mColorizer != nullptr) mColorizer->OnChange(x.mText, x.mStart.mLine, GetCharacterIndexR(x.mStart), x.mEnd.mLine, GetCharacterIndexR(x.mEnd), x.mType == Common::UndoOperationType::Add, mLines);
 }
 
 const Common::Palette& TextEditor::GetDarkPalette()

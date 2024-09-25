@@ -9,9 +9,10 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include <boost/regex.hpp>
 #include "imgui.h"
+
 #include "Common.h"
+#include "Colorizer.h"
 
 class IMGUI_API TextEditor
 {
@@ -154,7 +155,7 @@ private:
 	};
 
 	typedef std::unordered_map<std::string, Identifier> Identifiers;
-	typedef std::vector<std::pair<boost::regex, Common::PaletteIndex>> RegexList;
+	//typedef std::vector<std::pair<boost::regex, Common::PaletteIndex>> RegexList;
 
 	class UndoRecord
 	{
@@ -302,7 +303,8 @@ private:
 	Common::Palette mPalette;
 	LanguageDefinitionId mLanguageDefinitionId;
 	Common::LanguageDefinition* mLanguageDefinition = nullptr;
-	RegexList mRegexList;
+	//RegexList mRegexList;
+	Colorizer* mColorizer = nullptr;
 
 	inline bool IsHorizontalScrollbarVisible() const { return mCurrentSpaceWidth > mContentWidth; }
 	inline bool IsVerticalScrollbarVisible() const { return mCurrentSpaceHeight > mContentHeight; }
