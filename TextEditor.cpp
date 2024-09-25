@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <string>
-#include <cmath>
 #include <set>
 
 #include "TextEditor.h"

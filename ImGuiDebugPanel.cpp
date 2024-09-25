@@ -1,4 +1,3 @@
-#include <cmath>
 #include "TextEditor.h"
 
 void TextEditor::ImGuiDebugPanel(const std::string& panelName)
