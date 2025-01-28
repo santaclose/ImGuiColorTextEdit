@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <string>
 #include <set>
+#include <boost/regex.hpp>
 
 #include "TextEditor.h"
 
@@ -9,10 +10,17 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h" // for imGui::GetCurrentWindow()
 
+
+struct TextEditor::RegexList {
+    std::vector<std::pair<boost::regex, TextEditor::PaletteIndex>> mValue;
+};
+
+
 // --------------------------------------- //
 // ------------- Exposed API ------------- //
 
 TextEditor::TextEditor()
+    : mRegexList(std::make_shared<RegexList>())
 {
 	SetPalette(defaultPalette);
 	mLines.push_back(Line());
@@ -90,9 +98,9 @@ void TextEditor::SetLanguageDefinition(LanguageDefinitionId aValue)
 		break;
 	}
 
-	mRegexList.clear();
+    mRegexList->mValue.clear();
 	for (const auto& r : mLanguageDefinition->mTokenRegexStrings)
-		mRegexList.push_back(std::make_pair(boost::regex(r.first, boost::regex_constants::optimize), r.second));
+        mRegexList->mValue.push_back(std::make_pair(boost::regex(r.first, boost::regex_constants::optimize), r.second));
 
 	Colorize();
 }
@@ -2630,7 +2638,7 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 				// todo : remove
 				//printf("using regex for %.*s\n", first + 10 < last ? 10 : int(last - first), first);
 
-				for (const auto& p : mRegexList)
+				for (const auto& p : mRegexList->mValue)
 				{
 					bool regexSearchResult = false;
 					try { regexSearchResult = boost::regex_search(first, last, results, p.first, boost::regex_constants::match_continuous); }
