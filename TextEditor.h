@@ -10,7 +10,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include <boost/regex.hpp>
 #include "imgui.h"
 
 class IMGUI_API TextEditor
@@ -304,7 +303,6 @@ private:
 		UndoOperationType mType;
 	};
 
-	typedef std::vector<std::pair<boost::regex, PaletteIndex>> RegexList;
 
 	class UndoRecord
 	{
@@ -456,7 +454,6 @@ private:
 	Palette mPalette;
 	LanguageDefinitionId mLanguageDefinitionId;
 	const LanguageDefinition* mLanguageDefinition = nullptr;
-	RegexList mRegexList;
 
 	inline bool IsHorizontalScrollbarVisible() const { return mCurrentSpaceWidth > mContentWidth; }
 	inline bool IsVerticalScrollbarVisible() const { return mCurrentSpaceHeight > mContentHeight; }
@@ -469,4 +466,8 @@ private:
 	static const std::unordered_map<char, char> OPEN_TO_CLOSE_CHAR;
 	static const std::unordered_map<char, char> CLOSE_TO_OPEN_CHAR;
 	static PaletteId defaultPalette;
+
+private:
+    struct RegexList;
+    std::shared_ptr<RegexList> mRegexList;
 };
