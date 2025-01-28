@@ -2241,7 +2241,7 @@ void TextEditor::Render(bool aParentIsFocused)
 	static char lineNumberBuffer[16];
 	if (mShowLineNumbers)
 	{
-		snprintf(lineNumberBuffer, 16, " %d ", mLines.size());
+		snprintf(lineNumberBuffer, 16, " %zu ", mLines.size());
 		mTextStart += ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, lineNumberBuffer, nullptr, nullptr).x;
 	}
 
