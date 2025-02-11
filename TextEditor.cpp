@@ -1032,23 +1032,6 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 				auto& line = mLines[coord.mLine];
 				auto cindex = GetCharacterIndexR(coord);
 
-				if (mOverwrite && cindex < (int)line.size())
-				{
-					auto d = UTF8CharLength(line[cindex].mChar);
-
-					UndoOperation removed;
-					removed.mType = UndoOperationType::Delete;
-					removed.mStart = mState.mCursors[c].mInteractiveEnd;
-					removed.mEnd = Coordinates(coord.mLine, GetCharacterColumn(coord.mLine, cindex + d));
-
-					while (d-- > 0 && cindex < (int)line.size())
-					{
-						removed.mText += line[cindex].mChar;
-						RemoveGlyphsFromLine(coord.mLine, cindex, cindex + 1);
-					}
-					u.mOperations.push_back(removed);
-				}
-
 				for (auto p = buf; *p != '\0'; p++, ++cindex)
 					AddGlyphToLine(coord.mLine, cindex, Glyph(*p, PaletteIndex::Default));
 				added.mText = buf;
@@ -1633,7 +1616,7 @@ TextEditor::Coordinates TextEditor::GetActualCursorCoordinates(int aCursor, bool
 		return SanitizeCoordinates(aStart ? mState.mCursors[aCursor].mInteractiveStart : mState.mCursors[aCursor].mInteractiveEnd);
 }
 
-TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode, bool* isOverLineNumber) const
+TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPosition, bool* isOverLineNumber) const
 {
 	ImVec2 origin = ImGui::GetCursorScreenPos();
 	ImVec2 local(aPosition.x - origin.x + 3.0f, aPosition.y - origin.y);
@@ -2051,8 +2034,6 @@ void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 			MoveDownCurrentLines();
 		else if (!mReadOnly && !alt && ctrl && !shift && !super && ImGui::IsKeyPressed(ImGuiKey_Slash))
 			ToggleLineComment();
-		else if (!alt && !ctrl && !shift && !super && ImGui::IsKeyPressed(ImGuiKey_Insert))
-			mOverwrite ^= true;
 		else if (isCtrlOnly && ImGui::IsKeyPressed(ImGuiKey_Insert))
 			Copy();
 		else if (isShortcut && ImGui::IsKeyPressed(ImGuiKey_C))
@@ -2115,7 +2096,7 @@ void TextEditor::HandleMouseInputs()
 	if (mDraggingSelection && ImGui::IsMouseDragging(0))
 	{
 		io.WantCaptureMouse = true;
-		Coordinates cursorCoords = ScreenPosToCoordinates(ImGui::GetMousePos(), !mOverwrite);
+		Coordinates cursorCoords = ScreenPosToCoordinates(ImGui::GetMousePos());
 		SetCursorPosition(cursorCoords, mState.GetLastAddedCursorIndex(), false);
 	}
 
@@ -2192,7 +2173,7 @@ void TextEditor::HandleMouseInputs()
 					mState.mCurrentCursor = 0;
 
 				bool isOverLineNumber;
-				Coordinates cursorCoords = ScreenPosToCoordinates(ImGui::GetMousePos(), !mOverwrite, &isOverLineNumber);
+				Coordinates cursorCoords = ScreenPosToCoordinates(ImGui::GetMousePos(), &isOverLineNumber);
 				if (isOverLineNumber)
 				{
 					Coordinates targetCursorPos = cursorCoords.mLine < mLines.size() - 1 ?
@@ -2216,7 +2197,7 @@ void TextEditor::HandleMouseInputs()
 		{
 			if (click)
 			{
-				Coordinates newSelection = ScreenPosToCoordinates(ImGui::GetMousePos(), !mOverwrite);
+				Coordinates newSelection = ScreenPosToCoordinates(ImGui::GetMousePos());
 				SetCursorPosition(newSelection, mState.mCurrentCursor, false);
 			}
 		}
@@ -2325,16 +2306,6 @@ void TextEditor::Render(bool aParentIsFocused)
 						auto cindex = GetCharacterIndexR(cursorCoords);
 						float cx = TextDistanceToLineStart(cursorCoords);
 
-						if (mOverwrite && cindex < (int)line.size())
-						{
-							if (line[cindex].mChar == '\t')
-							{
-								auto x = (1.0f + std::floor((1.0f + cx) / (float(mTabSize) * spaceSize))) * (float(mTabSize) * spaceSize);
-								width = x - cx;
-							}
-							else
-								width = mCharAdvance.x;
-						}
 						ImVec2 cstart(textScreenPos.x + cx, lineStartScreenPos.y);
 						ImVec2 cend(textScreenPos.x + cx + width, lineStartScreenPos.y + mCharAdvance.y);
 						drawList->AddRectFilled(cstart, cend, mPalette[(int)PaletteIndex::Cursor]);

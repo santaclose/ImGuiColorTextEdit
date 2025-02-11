@@ -44,7 +44,6 @@ public:
 	inline void SetShortTabsEnabled(bool aValue) { mShortTabs = aValue; }
 	inline bool IsShortTabsEnabled() const { return mShortTabs; }
 	inline int GetLineCount() const { return mLines.size(); }
-	inline bool IsOverwriteEnabled() const { return mOverwrite; }
 	void SetPalette(PaletteId aValue);
 	PaletteId GetPalette() const { return mPaletteId; }
 	void SetLanguageDefinition(LanguageDefinitionId aValue);
@@ -368,7 +367,7 @@ private:
 
 	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
 	Coordinates GetActualCursorCoordinates(int aCursor = -1, bool aStart = false) const;
-	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false, bool* isOverLineNumber = nullptr) const;
+	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool* isOverLineNumber = nullptr) const;
 	Coordinates FindWordStart(const Coordinates& aFrom) const;
 	Coordinates FindWordEnd(const Coordinates& aFrom) const;
 	int GetCharacterIndexL(const Coordinates& aCoordinates) const;
@@ -410,7 +409,6 @@ private:
 
 	int mTabSize = 4;
 	float mLineSpacing = 1.0f;
-	bool mOverwrite = false;
 	bool mReadOnly = false;
 	bool mAutoIndent = true;
 	bool mShowWhitespaces = true;
