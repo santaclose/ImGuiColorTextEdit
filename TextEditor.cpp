@@ -1585,8 +1585,10 @@ void TextEditor::EnsureCursorVisible(int aCursor, bool aStartToo)
 
 TextEditor::Coordinates TextEditor::SanitizeCoordinates(const Coordinates& aValue) const
 {
-	auto line = aValue.mLine;
-	auto column = aValue.mColumn;
+	// Clamp in document and line limits
+	auto line = Max(aValue.mLine, 0);
+	auto column = Max(aValue.mColumn, 0);
+	Coordinates out;
 	if (line >= (int) mLines.size())
 	{
 		if (mLines.empty())
@@ -1599,13 +1601,26 @@ TextEditor::Coordinates TextEditor::SanitizeCoordinates(const Coordinates& aValu
 			line = (int) mLines.size() - 1;
 			column = GetLineMaxColumn(line);
 		}
-		return Coordinates(line, column);
+		out = Coordinates(line, column);
 	}
 	else
 	{
 		column = mLines.empty() ? 0 : GetLineMaxColumn(line, column);
-		return Coordinates(line, column);
+		out = Coordinates(line, column);
 	}
+
+	// Move if inside a tab character
+	int charIndex = GetCharacterIndexL(out);
+	if (charIndex > -1 && charIndex < mLines[out.mLine].size() && mLines[out.mLine][charIndex].mChar == '\t')
+	{
+		int columnToLeft = GetCharacterColumn(out.mLine, charIndex);
+		int columnToRight = GetCharacterColumn(out.mLine, GetCharacterIndexR(out));
+		if (out.mColumn - columnToLeft <= columnToRight - out.mColumn)
+			out.mColumn = columnToLeft;
+		else
+			out.mColumn = columnToRight;
+	}
+	return out;
 }
 
 TextEditor::Coordinates TextEditor::GetActualCursorCoordinates(int aCursor, bool aStart) const
@@ -1628,18 +1643,8 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 		Max(0, (int)floor(local.y / mCharAdvance.y)),
 		Max(0, (int)floor((local.x - mTextStart) / mCharAdvance.x))
 	};
-	int charIndex = GetCharacterIndexL(out);
-	if (charIndex > -1 && charIndex < mLines[out.mLine].size() && mLines[out.mLine][charIndex].mChar == '\t')
-	{
-		int columnToLeft = GetCharacterColumn(out.mLine, charIndex);
-		int columnToRight = GetCharacterColumn(out.mLine, GetCharacterIndexR(out));
-		if (out.mColumn - columnToLeft < columnToRight - out.mColumn)
-			out.mColumn = columnToLeft;
-		else
-			out.mColumn = columnToRight;
-	}
-	else
-		out.mColumn = Max(0, (int)floor((local.x - mTextStart + POS_TO_COORDS_COLUMN_OFFSET * mCharAdvance.x) / mCharAdvance.x));
+	out.mColumn = Max(0, (int)floor((local.x - mTextStart + POS_TO_COORDS_COLUMN_OFFSET * mCharAdvance.x) / mCharAdvance.x));
+
 	return SanitizeCoordinates(out);
 }
 
