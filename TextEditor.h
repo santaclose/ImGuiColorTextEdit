@@ -69,7 +69,7 @@ public:
 	void SetCursorPosition(int aLine, int aCharIndex);
 	inline void GetCursorPosition(int& outLine, int& outColumn) const
 	{
-		auto coords = GetActualCursorCoordinates();
+		auto coords = GetSanitizedCursorCoordinates();
 		outLine = coords.mLine;
 		outColumn = coords.mColumn;
 	}
@@ -366,7 +366,7 @@ private:
 	void EnsureCursorVisible(int aCursor = -1, bool aStartToo = false);
 
 	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
-	Coordinates GetActualCursorCoordinates(int aCursor = -1, bool aStart = false) const;
+	Coordinates GetSanitizedCursorCoordinates(int aCursor = -1, bool aStart = false) const;
 	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool* isOverLineNumber = nullptr) const;
 	Coordinates FindWordStart(const Coordinates& aFrom) const;
 	Coordinates FindWordEnd(const Coordinates& aFrom) const;

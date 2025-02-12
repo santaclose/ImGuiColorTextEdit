@@ -226,7 +226,7 @@ void TextEditor::Copy()
 		if (!mLines.empty())
 		{
 			std::string str;
-			auto& line = mLines[GetActualCursorCoordinates().mLine];
+			auto& line = mLines[GetSanitizedCursorCoordinates().mLine];
 			for (auto& g : line)
 				str.push_back(g.mChar);
 			ImGui::SetClipboardText(str.c_str());
@@ -303,17 +303,17 @@ void TextEditor::Paste()
 
 		for (int c = mState.mCurrentCursor; c > -1; c--)
 		{
-			Coordinates start = GetActualCursorCoordinates(c);
+			Coordinates start = GetSanitizedCursorCoordinates(c);
 			if (canPasteToMultipleCursors)
 			{
 				std::string clipSubText = clipText.substr(clipTextLines[c].first, clipTextLines[c].second - clipTextLines[c].first);
 				InsertTextAtCursor(clipSubText.c_str(), c);
-				u.mOperations.push_back({ clipSubText, start, GetActualCursorCoordinates(c), UndoOperationType::Add });
+				u.mOperations.push_back({ clipSubText, start, GetSanitizedCursorCoordinates(c), UndoOperationType::Add });
 			}
 			else
 			{
 				InsertTextAtCursor(clipText.c_str(), c);
-				u.mOperations.push_back({ clipText, start, GetActualCursorCoordinates(c), UndoOperationType::Add });
+				u.mOperations.push_back({ clipText, start, GetSanitizedCursorCoordinates(c), UndoOperationType::Add });
 			}
 		}
 
@@ -746,7 +746,7 @@ void TextEditor::InsertTextAtCursor(const char* aValue, int aCursor)
 	if (aCursor == -1)
 		aCursor = mState.mCurrentCursor;
 
-	auto pos = GetActualCursorCoordinates(aCursor);
+	auto pos = GetSanitizedCursorCoordinates(aCursor);
 	auto start = std::min(pos, mState.mCursors[aCursor].GetSelectionStart());
 	int totalLines = pos.mLine - start.mLine;
 
@@ -993,7 +993,7 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 	std::vector<Coordinates> coords;
 	for (int c = mState.mCurrentCursor; c > -1; c--) // order important here for typing \n in the same line at the same time
 	{
-		auto coord = GetActualCursorCoordinates(c);
+		auto coord = GetSanitizedCursorCoordinates(c);
 		coords.push_back(coord);
 		UndoOperation added;
 		added.mType = UndoOperationType::Add;
@@ -1042,7 +1042,7 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 				continue;
 		}
 
-		added.mEnd = GetActualCursorCoordinates(c);
+		added.mEnd = GetSanitizedCursorCoordinates(c);
 		u.mOperations.push_back(added);
 	}
 
@@ -1623,12 +1623,10 @@ TextEditor::Coordinates TextEditor::SanitizeCoordinates(const Coordinates& aValu
 	return out;
 }
 
-TextEditor::Coordinates TextEditor::GetActualCursorCoordinates(int aCursor, bool aStart) const
+TextEditor::Coordinates TextEditor::GetSanitizedCursorCoordinates(int aCursor, bool aStart) const
 {
-	if (aCursor == -1)
-		return SanitizeCoordinates(aStart ? mState.mCursors[mState.mCurrentCursor].mInteractiveStart : mState.mCursors[mState.mCurrentCursor].mInteractiveEnd);
-	else
-		return SanitizeCoordinates(aStart ? mState.mCursors[aCursor].mInteractiveStart : mState.mCursors[aCursor].mInteractiveEnd);
+	aCursor = aCursor == -1 ? mState.mCurrentCursor : aCursor;
+	return SanitizeCoordinates(aStart ? mState.mCursors[aCursor].mInteractiveStart : mState.mCursors[aCursor].mInteractiveEnd);
 }
 
 TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPosition, bool* isOverLineNumber) const
@@ -2406,7 +2404,7 @@ void TextEditor::Render(bool aParentIsFocused)
 		for (int i = 0; i < (mEnsureCursorVisibleStartToo ? 2 : 1); i++) // first pass for interactive end and second pass for interactive start
 		{
 			if (i) UpdateViewVariables(mScrollX, mScrollY); // second pass depends on changes made in first pass
-			Coordinates targetCoords = GetActualCursorCoordinates(mEnsureCursorVisible, i); // cursor selection end or start
+			Coordinates targetCoords = GetSanitizedCursorCoordinates(mEnsureCursorVisible, i); // cursor selection end or start
 			if (targetCoords.mLine <= mFirstVisibleLine)
 			{
 				float targetScroll = std::max(0.0f, (targetCoords.mLine - 0.5f) * mCharAdvance.y);
