@@ -30,6 +30,8 @@ TextEditor::~TextEditor()
 {
 }
 
+int TextEditor::GetLineCount() const { return mLines.size(); }
+
 void TextEditor::SetPalette(PaletteId aValue)
 {
 	mPaletteId = aValue;
