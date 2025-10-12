@@ -1004,21 +1004,42 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 		if (aChar == '\n')
 		{
 			InsertLine(coord.mLine + 1);
-			auto& line = mLines[coord.mLine];
+			auto& previousLine = mLines[coord.mLine];
 			auto& newLine = mLines[coord.mLine + 1];
 
 			added.mText = "";
 			added.mText += (char)aChar;
 			if (mAutoIndent)
-				for (int i = 0; i < line.size() && isascii(line[i].mChar) && isblank(line[i].mChar); ++i)
+			{
+				std::vector<Glyph> indentBuffer;
+				for (int i = 0; i < previousLine.size() && isascii(previousLine[i].mChar) && isblank(previousLine[i].mChar); ++i)
 				{
-					newLine.push_back(line[i]);
-					added.mText += line[i].mChar;
+					indentBuffer.push_back(previousLine[i]);
 				}
+				if (coord.mLine + 2 < mLines.size())
+				{
+					std::vector<Glyph> indentBuffer2;
+					auto& nextLine = mLines[coord.mLine + 2];
+					for (int i = 0; i < nextLine.size() && isascii(nextLine[i].mChar) && isblank(nextLine[i].mChar); ++i)
+					{
+						indentBuffer2.push_back(nextLine[i]);
+					}
+					if (indentBuffer2.size() > indentBuffer.size())
+					{
+						indentBuffer = std::move(indentBuffer2);
+					}
+				}
+
+				for (int i = 0; i < indentBuffer.size(); ++i)
+				{
+					newLine.push_back(indentBuffer[i]);
+					added.mText += indentBuffer[i].mChar;
+				}
+			}
 
 			const size_t whitespaceSize = newLine.size();
 			auto cindex = GetCharacterIndexR(coord);
-			AddGlyphsToLine(coord.mLine + 1, newLine.size(), line.begin() + cindex, line.end());
+			AddGlyphsToLine(coord.mLine + 1, newLine.size(), previousLine.begin() + cindex, previousLine.end());
 			RemoveGlyphsFromLine(coord.mLine, cindex);
 			SetCursorPosition(Coordinates(coord.mLine + 1, GetCharacterColumn(coord.mLine + 1, (int)whitespaceSize)), c);
 		}
